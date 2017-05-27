@@ -30,7 +30,8 @@
             {'name': 'friends of friends who are single and over 30', 'func': ffoOver30Query},
             {'name': 'friends of friends who are single and over 30', 'func': ffoOver30},
 
-            {'name': 'reset', 'func': resetGraph},
+            {'name': 'get entire graph', 'func': getEntireGraphQuery},
+            {'name': 'execute', 'func': getEntireGraph},
 
             {'name': 'add countries', 'func': introduceCountriesQuery},
             {'name': 'execute', 'func': introduceCountries},
@@ -134,7 +135,7 @@
         }
 
         function findFriendsQuery() {
-            setQuery(`MATCH (ME:person {name:"Roi Lipman"})-[:friend]->(f:person) RETURN f`);
+            setQuery(`GRAPH.MATCH social (ME:person {name:"Roi Lipman"})-[:friend]->(f:person) RETURN f`);
         }
 
         function findFriends() {
@@ -148,13 +149,13 @@
         }
 
         function ffoOver30Query() {
-            setQuery(`MATCH (ME:person {name:"Roi Lipman"})-[:friend]->(:person)-[:friend]->(fof:person {status:single}) 
+            setQuery(`GRAPH.MATCH social (ME:person {name:"Roi Lipman"})-[:friend]->(:person)-[:friend]->(fof:person {status:single}) 
                 WHERE fof.age > 30
                 RETURN fof`);
         }
 
         function connectFOFQuery() {
-            setQuery(`MATCH (ME:person {name:"Roi Lipman"})-[:friend]->(:person)-[:friend]->(fof:person) RETURN fof`);
+            setQuery(`GRAPH.MATCH social (ME:person {name:"Roi Lipman"})-[:friend]->(:person)-[:friend]->(fof:person) RETURN fof`);
         }
         
         function connectFOF() {
@@ -189,7 +190,11 @@
             graph.addLink('ailon', 'noam');
         }
 
-        function resetGraph() {
+        function getEntireGraphQuery() {
+            setQuery("GRAPH.MATCH social ()-[]->()");
+        }
+
+        function getEntireGraph() {
             setQuery("");
             graph.clear();
             addMyself();
@@ -291,7 +296,7 @@
         }
 
         function placesIveBeenToQuery() {
-            setQuery(`MATCH (:person {name:"Roi Lipman"})-[:visited]->(c:country)<-[:visited]-(f:person)<-[:friend]-(:person {name:"Roi Lipman"})
+            setQuery(`GRAPH.MATCH social (:person {name:"Roi Lipman"})-[:visited]->(c:country)<-[:visited]-(f:person)<-[:friend]-(:person {name:"Roi Lipman"})
             RETURN f, c`);
         }
 
@@ -327,7 +332,7 @@
         }
 
         function businessTripQuery() {
-            setQuery("MATCH (p:person)-[v:visited {purpose:business}]->(c:country) RETURN p, v, c");
+            setQuery("GRAPH.MATCH social (p:person)-[v:visited {purpose:business}]->(c:country) RETURN p, v, c");
         }
 
         function businessTrip() {
@@ -366,7 +371,7 @@
         }
 
         function vacationsQuery() {
-            setQuery(`MATCH (p:person)-[v:visited {purpose:pleasure}]->(c:country)
+            setQuery(`GRAPH.MATCH social (p:person)-[v:visited {purpose:pleasure}]->(c:country)
             RETURN p.name, count(v.purpose) AS vacations
             ORDER BY vacations DESC
             LIMIT 6`);
