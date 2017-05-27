@@ -1,0 +1,550 @@
+<html>
+    <head>
+    <title>RedisGraph</title>
+    <script type="text/javascript" src="vivagraph.js"></script>
+
+    <script type="text/javascript">
+        var graph;
+        var layout;
+
+        var countries = ['andorra', 'china', 'germany', 'italy', 'kazakhstan', 'russia', 'us', 'canada', 'czech', 'greece', 'japan', 'netherlands', 'thailand'];
+        var friends = ['ailon', 'alon', 'boaz', 'jane', 'lucy', 'mor', 'noam', 'omri', 'ori', 'shelly', 'tal', 'valerie'];
+        var demo_step = 0;
+
+        var demo_steps = [
+            {'name': 'first node', 'func': addMyselfQuery},
+            {'name': 'execute', 'func': addMyself},
+            
+            {'name': 'add friends', 'func': introduceFriendsQuery},
+            {'name': 'execute', 'func': introduceFriends},
+
+            {'name': 'connect friends', 'func': connectFriendsQuery},
+            {'name': 'execute', 'func': connectFriends},
+            
+            {'name': 'my friends', 'func': findFriendsQuery},
+            {'name': 'execute', 'func': findFriends},
+
+            {'name': 'friends of friends', 'func': connectFOFQuery},
+            {'name': 'execute', 'func': connectFOF},
+
+            {'name': 'friends of friends who are single and over 30', 'func': ffoOver30Query},
+            {'name': 'friends of friends who are single and over 30', 'func': ffoOver30},
+
+            {'name': 'reset', 'func': resetGraph},
+
+            {'name': 'add countries', 'func': introduceCountriesQuery},
+            {'name': 'execute', 'func': introduceCountries},
+            
+            {'name': 'visits', 'func': connectVisitsQuery},
+            {'name': 'execute', 'func': connectVisits},
+
+            {'name': 'Friends who\'ve been to places I\'ve visited', 'func': placesIveBeenToQuery},
+            {'name': 'execute', 'func': placesIveBeenTo},
+
+            {'name': 'business trip', 'func': businessTripQuery},
+            {'name': 'execute', 'func': businessTrip},
+
+            {'name': 'business trip', 'func': vacationsQuery},
+            {'name': 'execute', 'func': vacations},            
+        ]
+
+        function demoNextStep() {
+            var step = demo_steps[demo_step];
+            step['func']();
+            
+            demo_step++;
+            
+            var btn = document.getElementById('btnDemoStep');
+            btn.textContent = demo_steps[demo_step]['name'];
+        }
+
+        function setQuery(query) {
+            var txt = document.getElementById('txtQuery');
+            txt.value = query;
+        }
+
+        function addPerson(name) {
+            return graph.addNode(name, {url : 'http://127.0.0.1:8000/images/profiles/'+name+'.jpg'});
+        }
+
+        function addCountry(name) {
+            graph.addNode(name, {url : 'http://127.0.0.1:8000/images/countries/'+name+'.png'});
+        }
+
+        function addMyselfQuery() {
+            setQuery("GRAPH.CREATENODE social person name \"Roi Lipman\" age 32 gender male status married");
+        }
+
+        function addMyself() {
+            setQuery("");
+            var node = addPerson('roi');
+            layout.pinNode(node, true); // now layout will not move this node 
+            return node;
+        }
+
+        function introduceFriendsQuery() {
+            msg = "";
+            msg += "GRAPH.CREATENODE social person name \"Alon Fital\" age 32 gender male status marrie\n";
+            msg += "GRAPH.CREATENODE social person name \"Ailon Velger\" age 32 gender male status marrie\n";
+            msg += "GRAPH.CREATENODE social person name \"Ori Laslo\" age 32 gender male status marrie\n";
+            msg += "GRAPH.CREATENODE social person name \"Boaz Arad\" age 31 gender male status marrie\n";
+            msg += "GRAPH.CREATENODE social person name \"Omri Traub\" age 33 gender male status singl\n";
+            msg += "GRAPH.CREATENODE social person name \"Tal Doron\" age 32 gender male status singl\n";
+            msg += "GRAPH.CREATENODE social person name \"Lucy Yanfital\" age 30 gender female status marrie\n";
+            msg += "GRAPH.CREATENODE social person name \"Jane Chernomorin\" age 31 gender female status marrie\n";
+            msg += "GRAPH.CREATENODE social person name \"Shelly Laslo\" age Rooz gender 31 status female	marrie\n";
+            msg += "GRAPH.CREATENODE social person name \"Valerie Abigail\" age Arad gender 31 status female	marrie\n";
+            msg += "GRAPH.CREATENODE social person name \"Mor Yesharim\" age 31 gender female status marrie\n";
+            msg += "GRAPH.CREATENODE social person name \"Noam Nativ\" age 34 gender male status single\n";
+            setQuery(msg);
+        }
+
+        function introduceFriends() {
+            setQuery("");
+            for(var i = 0; i < friends.length; i++) {
+                addPerson(friends[i]);
+            }
+        }
+
+        function connectFriendsQuery() {
+            msg = "";
+            msg += "GRAPH.ADDEDGE social roi friends alon\n";
+            msg += "GRAPH.ADDEDGE social roi friends ailon\n";
+            msg += "GRAPH.ADDEDGE social roi friends ori\n";
+            msg += "GRAPH.ADDEDGE social roi friends boaz\n";
+            msg += "GRAPH.ADDEDGE social roi friends omri\n";
+            msg += "GRAPH.ADDEDGE social roi friends tal\n";
+            setQuery(msg);
+        }
+        
+        function connectFriends() {
+            setQuery("");
+            graph.addLink('roi', 'alon');
+            graph.addLink('roi', 'ailon');
+            graph.addLink('roi', 'ori');
+            graph.addLink('roi', 'boaz');
+            graph.addLink('roi', 'omri');
+            graph.addLink('roi', 'tal');
+            graph.addLink('alon', 'lucy');
+            graph.addLink('alon', 'mor');
+            graph.addLink('ailon', 'jane');
+            graph.addLink('ailon', 'noam');
+            graph.addLink('ori', 'shelly');
+            graph.addLink('boaz', 'valerie');
+        }
+
+        function findFriendsQuery() {
+            setQuery(`MATCH (ME:person {name:"Roi Lipman"})-[:friend]->(f:person) RETURN f`);
+        }
+
+        function findFriends() {
+            setQuery("");
+            graph.removeNode('lucy');
+            graph.removeNode('jane');
+            graph.removeNode('shelly');
+            graph.removeNode('valerie');
+            graph.removeNode('mor');
+            graph.removeNode('noam');
+        }
+
+        function ffoOver30Query() {
+            setQuery(`MATCH (ME:person {name:"Roi Lipman"})-[:friend]->(:person)-[:friend]->(fof:person {status:single}) 
+                WHERE fof.age > 30
+                RETURN fof`);
+        }
+
+        function connectFOFQuery() {
+            setQuery(`MATCH (ME:person {name:"Roi Lipman"})-[:friend]->(:person)-[:friend]->(fof:person) RETURN fof`);
+        }
+        
+        function connectFOF() {
+            addPerson('lucy');
+            addPerson('jane');
+            addPerson('shelly');
+            addPerson('valerie');
+            addPerson('mor');
+            addPerson('noam');
+
+            graph.addLink('alon', 'lucy');
+            graph.addLink('alon', 'mor');
+            graph.addLink('ailon', 'jane');
+            graph.addLink('ailon', 'noam');
+            graph.addLink('ori', 'shelly');
+            graph.addLink('boaz', 'valerie');
+        }
+
+        function ffoOver30() {
+            setQuery("");
+            addPerson('noam');
+            graph.removeNode('alon');
+            graph.removeNode('boaz');
+            graph.removeNode('omri');
+            graph.removeNode('ori');
+            graph.removeNode('tal');
+            graph.removeNode('lucy');
+            graph.removeNode('jane');
+            graph.removeNode('shelly');
+            graph.removeNode('valerie');
+            graph.removeNode('mor');
+            graph.addLink('ailon', 'noam');
+        }
+
+        function resetGraph() {
+            setQuery("");
+            graph.clear();
+            addMyself();
+            introduceFriends();
+            connectFriends();
+        }
+
+        function introduceCountriesQuery() {
+            var msg = "";
+            for(var i = 0; i < countries.length; i++) {
+                msg += "GRAPH.CREATENODE social country name " + countries[i] + "\n";
+            }
+            setQuery(msg);
+        }
+        
+        function introduceCountries() {
+            setQuery("");
+            for(var i = 0; i < countries.length; i++) {
+                addCountry(countries[i]);
+            }
+        }
+
+        function connectVisitsQuery() {
+            msg = "";
+            msg += "GRAPH.ADDEDGE social roi visit us purpose business\n";
+            msg += "GRAPH.ADDEDGE social roi visit czech purpose both\n";
+            msg += "GRAPH.ADDEDGE social roi visit japan purpose pleasure\n";
+            msg += "GRAPH.ADDEDGE social alon visit czech purpose both\n";
+            msg += "GRAPH.ADDEDGE social alon visit us purpose both\n";
+            msg += "GRAPH.ADDEDGE social alon visit greece purpose pleasure\n";
+            msg += "GRAPH.ADDEDGE social ori visit canada purpose pleasure\n";
+            msg += "GRAPH.ADDEDGE social ori visit us purpose business\n";
+            msg += "GRAPH.ADDEDGE social ori visit china purpose business\n";
+            msg += "GRAPH.ADDEDGE social boaz visit netherlands purpose both\n";
+            msg += "GRAPH.ADDEDGE social boaz visit us purpose both\n";
+            msg += "GRAPH.ADDEDGE social omri visit us purpose pleasure\n";
+            msg += "GRAPH.ADDEDGE social omri visit greece purpose pleasure\n";
+            msg += "GRAPH.ADDEDGE social omri visit andorra purpose pleasure\n";
+            msg += "GRAPH.ADDEDGE social tal visit us purpose both\n";
+            msg += "GRAPH.ADDEDGE social tal visit japan purpose business\n";
+            msg += "GRAPH.ADDEDGE social tal visit andorra purpose pleasure\n";
+            msg += "GRAPH.ADDEDGE social lucy visit czech purpose pleasure\n";
+            msg += "GRAPH.ADDEDGE social lucy visit us purpose both\n";
+            msg += "GRAPH.ADDEDGE social lucy visit kazakhstan purpose pleasure\n";
+            msg += "GRAPH.ADDEDGE social jane visit us purpose both\n";
+            msg += "GRAPH.ADDEDGE social jane visit greece purpose pleasure\n";
+            msg += "GRAPH.ADDEDGE social jane visit netherlands purpose pleasure\n";
+            msg += "GRAPH.ADDEDGE social shelly visit us purpose pleasure\n";
+            msg += "GRAPH.ADDEDGE social shelly visit canada purpose pleasure\n";
+            msg += "GRAPH.ADDEDGE social shelly visit china purpose pleasure\n";
+            msg += "GRAPH.ADDEDGE social valerie visit netherlands purpose pleasure\n";
+            msg += "GRAPH.ADDEDGE social valerie visit russia purpose pleasure\n";
+            msg += "GRAPH.ADDEDGE social mor visit germany purpose business\n";
+            msg += "GRAPH.ADDEDGE social mor visit greece purpose pleasure\n";
+            msg += "GRAPH.ADDEDGE social mor visit italy purpose pleasure\n";
+            msg += "GRAPH.ADDEDGE social noam visit netherlands purpose pleasure\n";
+            msg += "GRAPH.ADDEDGE social noam visit germany purpose pleasure\n";
+            msg += "GRAPH.ADDEDGE social noam visit thailand purpose pleasure";
+            
+            setQuery(msg);
+        }
+
+        function connectVisits() {
+            setQuery("");
+            graph.addLink('roi', 'us'); //	business
+            graph.addLink('roi', 'czech'); //	both
+            graph.addLink('roi', 'japan'); //	pleasure
+            graph.addLink('alon', 'czech'); //	both
+            graph.addLink('alon', 'us'); //	both
+            graph.addLink('alon', 'greece'); //	pleasure
+            graph.addLink('ori', 'canada'); //	pleasure
+            graph.addLink('ori', 'us'); //	business
+            graph.addLink('ori', 'china'); //	business
+            graph.addLink('boaz', 'netherlands'); //	both
+            graph.addLink('boaz', 'us'); //	both
+            graph.addLink('omri', 'us'); //	pleasure
+            graph.addLink('omri', 'greece'); //	pleasure
+            graph.addLink('omri', 'andorra'); //	pleasure
+            graph.addLink('tal', 'us'); //	both
+            graph.addLink('tal', 'japan'); //	business
+            graph.addLink('tal', 'andorra'); //	pleasure
+            graph.addLink('lucy', 'czech'); //	pleasure
+            graph.addLink('lucy', 'us'); //	both
+            graph.addLink('lucy', 'kazakhstan'); //	pleasure
+            graph.addLink('jane', 'us'); //	both
+            graph.addLink('jane', 'greece'); //	pleasure
+            graph.addLink('jane', 'netherlands'); //	pleasure
+            graph.addLink('shelly', 'us'); //	pleasure
+            graph.addLink('shelly', 'canada'); //	pleasure
+            graph.addLink('shelly', 'china'); //	pleasure
+            graph.addLink('valerie', 'netherlands'); //	pleasure
+            graph.addLink('valerie', 'russia'); //	pleasure
+            graph.addLink('mor', 'germany'); //	business
+            graph.addLink('mor', 'greece'); //	pleasure
+            graph.addLink('mor', 'italy'); //	pleasure
+            graph.addLink('noam', 'netherlands'); //	pleasure
+            graph.addLink('noam', 'germany'); //	pleasure
+            graph.addLink('noam', 'thailand'); //	pleasure
+        }
+
+        function placesIveBeenToQuery() {
+            setQuery(`MATCH (:person {name:"Roi Lipman"})-[:visited]->(c:country)<-[:visited]-(f:person)<-[:friend]-(:person {name:"Roi Lipman"})
+            RETURN f, c`);
+        }
+
+        function placesIveBeenTo() {
+            setQuery("");
+            
+            // Remove friendship nodes.
+            
+            graph.removeNode('andorra');
+            graph.removeNode('china');
+            graph.removeNode('germany');
+            graph.removeNode('italy');
+            graph.removeNode('kazakhstan');
+            graph.removeNode('russia');
+            graph.removeNode('canada');
+            graph.removeNode('greece');
+            graph.removeNode('netherlands');
+            graph.removeNode('thailand');
+
+            graph.removeNode('ailon');
+            graph.removeNode('mor');
+            graph.removeNode('noam');
+            graph.removeNode('valerie');
+
+            graph.removeLink(graph.getLink('roi', 'alon'));
+            graph.removeLink(graph.getLink('roi', 'ori'));
+            graph.removeLink(graph.getLink('roi', 'boaz'));
+            graph.removeLink(graph.getLink('roi', 'omri'));
+            graph.removeLink(graph.getLink('roi', 'tal'));
+            graph.removeLink(graph.getLink('alon', 'lucy'));
+            graph.removeLink(graph.getLink('ori', 'shelly'));
+            graph.removeLink(graph.getLink('ori', 'shelly'));
+        }
+
+        function businessTripQuery() {
+            setQuery("MATCH (p:person)-[v:visited {purpose:business}]->(c:country) RETURN p, v, c");
+        }
+
+        function businessTrip() {
+            setQuery("");
+            graph.clear();
+            
+            addMyself();
+            introduceFriends();
+            introduceCountries();
+
+            graph.addLink('roi', 'us');
+            graph.addLink('ori', 'us');
+            graph.addLink('ori', 'china');
+            graph.addLink('tal', 'japan');
+            graph.addLink('mor', 'germany');
+
+            graph.removeNode('andorra');
+            graph.removeNode('italy');
+            graph.removeNode('kazakhstan');
+            graph.removeNode('russia');
+            graph.removeNode('canada');
+            graph.removeNode('czech');
+            graph.removeNode('greece');
+            graph.removeNode('netherlands');
+            graph.removeNode('thailand');
+
+            graph.removeNode('ailon');
+            graph.removeNode('alon');
+            graph.removeNode('boaz');
+            graph.removeNode('jane');
+            graph.removeNode('lucy');
+            graph.removeNode('noam');
+            graph.removeNode('omri');
+            graph.removeNode('shelly');
+            graph.removeNode('valerie');
+        }
+
+        function vacationsQuery() {
+            setQuery(`MATCH (p:person)-[v:visited {purpose:pleasure}]->(c:country)
+            RETURN p.name, count(v.purpose) AS vacations
+            ORDER BY vacations DESC
+            LIMIT 6`);
+        }
+
+        function vacations() {
+            setQuery("");
+
+            graph.clear();
+            /*
+            graph.addLink('omri', 'us'); 3
+            graph.addLink('shelly', 'us'); 3
+            graph.addLink('noam', 'netherlands'); 3
+            graph.addLink('lucy', 'czech'); 2
+            graph.addLink('valerie', 'netherlands'); 2
+            graph.addLink('mor', 'greece'); 2
+            graph.addLink('jane', 'greece'); 2
+            graph.addLink('roi', 'japan'); 1
+            graph.addLink('alon', 'greece'); 1
+            graph.addLink('ori', 'canada'); 1
+            graph.addLink('tal', 'andorra'); 1
+            */
+            graph.addNode("omri 3", {url : 'http://127.0.0.1:8000/images/profiles/omri.jpg'});
+            graph.addNode("shelly 3", {url : 'http://127.0.0.1:8000/images/profiles/shelly.jpg'});
+            graph.addNode("noam 3", {url : 'http://127.0.0.1:8000/images/profiles/noam.jpg'});
+            graph.addNode("lucy 2", {url : 'http://127.0.0.1:8000/images/profiles/lucy.jpg'});
+            graph.addNode("valerie 2", {url : 'http://127.0.0.1:8000/images/profiles/valerie.jpg'});
+            graph.addNode("mor 2", {url : 'http://127.0.0.1:8000/images/profiles/mor.jpg'});
+        }
+
+        function main() {
+            graph = Viva.Graph.graph();
+            
+            // Set custom nodes appearance 
+            var graphics = Viva.Graph.View.svgGraphics();
+            var nodeSize = 24*3;
+
+            // graphics.node(function(node) {
+            //     // The function is called every time renderer needs a ui to display node 
+            //     return Viva.Graph.svg('image')
+            //             .attr('width', 24*1)
+            //             .attr('height', 24*1)
+            //             .link(node.data.url); // node.data holds custom object passed to graph.addNode(); 
+            //     })
+            //     .placeNode(function(nodeUI, pos){
+            //         // Shift image to let links go to the center: 
+            //         nodeUI.attr('x', pos.x - 12).attr('y', pos.y - 12);
+            //     });
+
+
+            graphics.node(function(node) {
+              // This time it's a group of elements: http://www.w3.org/TR/SVG/struct.html#Groups
+              var ui = Viva.Graph.svg('g'),
+                  // Create SVG text element with user id as content
+                  svgText = Viva.Graph.svg('text').attr('font-size', '25px').attr('y', '-4px').text(node.id),
+                  img = Viva.Graph.svg('image')
+                     .attr('width', nodeSize)
+                     .attr('height', nodeSize)
+                     .link(node.data.url);
+              ui.append(svgText);
+              ui.append(img);
+              return ui;
+            }).placeNode(function(nodeUI, pos) {
+                // 'g' element doesn't have convenient (x,y) attributes, instead
+                // we have to deal with transforms: http://www.w3.org/TR/SVG/coords.html#SVGGlobalTransformAttribute
+                nodeUI.attr('transform',
+                            'translate(' +
+                                  (pos.x - nodeSize/2) + ',' + (pos.y - nodeSize/2) +
+                            ')');
+            });
+
+
+            // graphics.link(function(link){
+            //     return Viva.Graph.svg('path')
+            //                .attr('stroke', 'red')
+            //                .attr('stroke-dasharray', '5, 5');
+            // }).placeLink(function(linkUI, fromPos, toPos) {
+            //     // linkUI - is the object returend from link() callback above.
+            //     var data = 'M' + fromPos.x + ',' + fromPos.y +
+            //                'L' + toPos.x + ',' + toPos.y;
+            //     // 'Path data' (http://www.w3.org/TR/SVG/paths.html#DAttribute )
+            //     // is a common way of rendering paths in SVG:
+            //     linkUI.attr("d", data);
+            // });
+
+            // To render an arrow we have to address two problems:
+            //  1. Links should start/stop at node's bounding box, not at the node center.
+            //  2. Render an arrow shape at the end of the link.
+            // Rendering arrow shape is achieved by using SVG markers, part of the SVG
+            // standard: http://www.w3.org/TR/SVG/painting.html#Markers
+            var createMarker = function(id) {
+                    return Viva.Graph.svg('marker')
+                               .attr('id', id)
+                               .attr('viewBox', "0 0 10 10")
+                               .attr('refX', "10")
+                               .attr('refY', "5")
+                               .attr('markerUnits', "strokeWidth")
+                               .attr('markerWidth', "10")
+                               .attr('markerHeight', "5")
+                               .attr('orient', "auto");
+                },
+            
+            marker = createMarker('Triangle');
+            marker.append('path').attr('d', 'M 0 0 L 10 5 L 0 10 z');
+            // Marker should be defined only once in <defs> child element of root <svg> element:
+            var defs = graphics.getSvgRoot().append('defs');
+            defs.append(marker);
+            var geom = Viva.Graph.geom();
+            graphics.link(function(link){
+                // Notice the Triangle marker-end attribe:
+                return Viva.Graph.svg('path')
+                           .attr('stroke', 'gray')
+                           .attr('marker-end', 'url(#Triangle)');
+            }).placeLink(function(linkUI, fromPos, toPos) {
+                // Here we should take care about
+                //  "Links should start/stop at node's bounding box, not at the node center."
+                // For rectangular nodes Viva.Graph.geom() provides efficient way to find
+                // an intersection point between segment and rectangle
+                var toNodeSize = nodeSize,
+                    fromNodeSize = nodeSize;
+                var from = geom.intersectRect(
+                        // rectangle:
+                                fromPos.x - fromNodeSize / 2, // left
+                                fromPos.y - fromNodeSize / 2, // top
+                                fromPos.x + fromNodeSize / 2, // right
+                                fromPos.y + fromNodeSize / 2, // bottom
+                        // segment:
+                                fromPos.x, fromPos.y, toPos.x, toPos.y)
+                           || fromPos; // if no intersection found - return center of the node
+                var to = geom.intersectRect(
+                        // rectangle:
+                                toPos.x - toNodeSize / 2, // left
+                                toPos.y - toNodeSize / 2, // top
+                                toPos.x + toNodeSize / 2, // right
+                                toPos.y + toNodeSize / 2, // bottom
+                        // segment:
+                                toPos.x, toPos.y, fromPos.x, fromPos.y)
+                            || toPos; // if no intersection found - return center of the node
+                var data = 'M' + from.x + ',' + from.y +
+                           'L' + to.x + ',' + to.y;
+                linkUI.attr("d", data);
+            });
+            
+
+            layout = Viva.Graph.Layout.forceDirected(graph, {
+                   springLength : 320,
+                   springCoeff : 0.0002,
+                   dragCoeff : 0.02,
+                   gravity : -1.2
+                });
+
+            var renderer = Viva.Graph.View.renderer(graph,
+                {
+                    layout   : layout,
+                    graphics : graphics,
+                    container: document.getElementById('graphDiv')
+                });
+            renderer.run();
+        }
+    </script>
+    
+    <style type="text/css" media="screen">
+        html, body, svg { width: 100%; height: 100%;}
+    </style>
+
+    </head>
+    <body onload='main()'>        
+        <div id="query" style="height:10%; width:100%">
+            Query: <br>
+            <div style="height:100%; width:100%;">
+                <div>
+                    <button id="btnDemoStep" onclick="demoNextStep()">first node</button>
+                </div>
+                <div style="height:100%; width:100%;">
+                    <textarea multiline id="txtQuery" style="height:100%; width:100%; font-size: 18px;"> </textarea>
+                </div>
+            </div>
+        </div>
+        <div id="graphDiv" style="height:90%; width:100%"></div>
+    </body>
+</html>
