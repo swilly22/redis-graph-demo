@@ -1,6 +1,9 @@
 <html>
     <head>
-    <title>RedisGraph</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->    <title>RedisGraph</title>
     <script type="text/javascript" src="vivagraph.js"></script>
 
     <script type="text/javascript">
@@ -12,51 +15,55 @@
         var demo_step = 0;
 
         var demo_steps = [
-            {'name': 'first node', 'func': addMyselfQuery},
-            {'name': 'execute', 'func': addMyself},
+            {'name': 'Create the first node in the graph', 'func': addMyselfQuery},
+            {'name': 'Execute', 'func': addMyself},
             
-            {'name': 'add friends', 'func': introduceFriendsQuery},
-            {'name': 'execute', 'func': introduceFriends},
+            {'name': 'Add nodes for Roi\'s friends', 'func': introduceFriendsQuery},
+            {'name': 'Execute', 'func': introduceFriends},
 
-            {'name': 'connect friends', 'func': connectFriendsQuery},
-            {'name': 'execute', 'func': connectFriends},
+            {'name': 'Connect everyone', 'func': connectFriendsQuery},
+            {'name': 'Execute', 'func': connectFriends},
             
-            {'name': 'my friends', 'func': findFriendsQuery},
-            {'name': 'execute', 'func': findFriends},
+            {'name': 'Who are Roi\'s friends?', 'func': findFriendsQuery},
+            {'name': 'Execute', 'func': findFriends},
 
-            {'name': 'friends of friends', 'func': connectFOFQuery},
-            {'name': 'execute', 'func': connectFOF},
+            {'name': 'Who are Roi\'s friends of friends (FoF)?', 'func': connectFOFQuery},
+            {'name': 'Execute', 'func': connectFOF},
 
-            {'name': 'friends of friends who are single and over 30', 'func': ffoOver30Query},
+            {'name': 'FoFs who are single and over 30', 'func': ffoOver30Query},
             {'name': 'friends of friends who are single and over 30', 'func': ffoOver30},
 
-            {'name': 'get entire graph', 'func': getEntireGraphQuery},
-            {'name': 'execute', 'func': getEntireGraph},
+            {'name': 'Fetch the graph', 'func': getEntireGraphQuery},
+            {'name': 'Execute', 'func': getEntireGraph},
 
-            {'name': 'add countries', 'func': introduceCountriesQuery},
-            {'name': 'execute', 'func': introduceCountries},
+            {'name': 'Add nodes representing countries', 'func': introduceCountriesQuery},
+            {'name': 'Execute', 'func': introduceCountries},
             
-            {'name': 'visits', 'func': connectVisitsQuery},
-            {'name': 'execute', 'func': connectVisits},
+            {'name': 'Add edges representing visits to a country for business or pleasure', 'func': connectVisitsQuery},
+            {'name': 'Execute', 'func': connectVisits},
 
-            {'name': 'Friends who\'ve been to places I\'ve visited', 'func': placesIveBeenToQuery},
-            {'name': 'execute', 'func': placesIveBeenTo},
+            {'name': 'Friends who\'ve been to places Roi had visited', 'func': placesIveBeenToQuery},
+            {'name': 'Execute', 'func': placesIveBeenTo},
 
-            {'name': 'business trip', 'func': businessTripQuery},
-            {'name': 'execute', 'func': businessTrip},
+            {'name': 'People who travel on business', 'func': businessTripQuery},
+            {'name': 'Execute', 'func': businessTrip},
 
-            {'name': 'business trip', 'func': vacationsQuery},
-            {'name': 'execute', 'func': vacations},            
+            {'name': 'Top globetrotters', 'func': vacationsQuery},
+            {'name': 'Execute', 'func': vacations},            
         ]
 
         function demoNextStep() {
             var step = demo_steps[demo_step];
             step['func']();
-            
-            demo_step++;
-            
             var btn = document.getElementById('btnDemoStep');
-            btn.textContent = demo_steps[demo_step]['name'];
+            if (step['name'] != 'Execute') {
+                var title = document.getElementById('steptitle');
+                title.textContent = demo_steps[demo_step]['name'];
+                btn.textContent = 'Execute';
+            } else {
+                btn.textContent = 'Next';
+            }
+            demo_step++;
         }
 
         function setQuery(query) {
@@ -73,11 +80,11 @@
         }
 
         function addMyselfQuery() {
-            setQuery("GRAPH.CREATENODE social person name \"Roi Lipman\" age 32 gender male status married");
+            setQuery("GRAPH.CREATENODE social person name roi age 32 gender male status married");
         }
 
         function addMyself() {
-            setQuery("");
+            // setQuery("");
             var node = addPerson('roi');
             layout.pinNode(node, true); // now layout will not move this node 
             return node;
@@ -85,23 +92,23 @@
 
         function introduceFriendsQuery() {
             msg = "";
-            msg += "GRAPH.CREATENODE social person name \"Alon Fital\" age 32 gender male status marrie\n";
-            msg += "GRAPH.CREATENODE social person name \"Ailon Velger\" age 32 gender male status marrie\n";
-            msg += "GRAPH.CREATENODE social person name \"Ori Laslo\" age 32 gender male status marrie\n";
-            msg += "GRAPH.CREATENODE social person name \"Boaz Arad\" age 31 gender male status marrie\n";
-            msg += "GRAPH.CREATENODE social person name \"Omri Traub\" age 33 gender male status singl\n";
-            msg += "GRAPH.CREATENODE social person name \"Tal Doron\" age 32 gender male status singl\n";
-            msg += "GRAPH.CREATENODE social person name \"Lucy Yanfital\" age 30 gender female status marrie\n";
-            msg += "GRAPH.CREATENODE social person name \"Jane Chernomorin\" age 31 gender female status marrie\n";
-            msg += "GRAPH.CREATENODE social person name \"Shelly Laslo\" age Rooz gender 31 status female	marrie\n";
-            msg += "GRAPH.CREATENODE social person name \"Valerie Abigail\" age Arad gender 31 status female	marrie\n";
-            msg += "GRAPH.CREATENODE social person name \"Mor Yesharim\" age 31 gender female status marrie\n";
-            msg += "GRAPH.CREATENODE social person name \"Noam Nativ\" age 34 gender male status single\n";
+            msg += "GRAPH.CREATENODE social person name alon age 32 gender male status married\n";
+            msg += "GRAPH.CREATENODE social person name ailon age 32 gender male status married\n";
+            msg += "GRAPH.CREATENODE social person name ori age 32 gender male status married\n";
+            msg += "GRAPH.CREATENODE social person name boaz age 31 gender male status married\n";
+            msg += "GRAPH.CREATENODE social person name omri age 33 gender male status single\n";
+            msg += "GRAPH.CREATENODE social person name tal age 32 gender male status single\n";
+            msg += "GRAPH.CREATENODE social person name lucy age 30 gender female status married\n";
+            msg += "GRAPH.CREATENODE social person name jane age 31 gender female status married\n";
+            msg += "GRAPH.CREATENODE social person name shelly age 31 gender female status married\n";
+            msg += "GRAPH.CREATENODE social person name valerie age 31 gender female status married\n";
+            msg += "GRAPH.CREATENODE social person name mor age 31 gender female status married\n";
+            msg += "GRAPH.CREATENODE social person name noam age 34 gender male status single\n";
             setQuery(msg);
         }
 
         function introduceFriends() {
-            setQuery("");
+            // setQuery("");
             for(var i = 0; i < friends.length; i++) {
                 addPerson(friends[i]);
             }
@@ -119,7 +126,7 @@
         }
         
         function connectFriends() {
-            setQuery("");
+            // setQuery("");
             graph.addLink('roi', 'alon');
             graph.addLink('roi', 'ailon');
             graph.addLink('roi', 'ori');
@@ -139,7 +146,7 @@
         }
 
         function findFriends() {
-            setQuery("");
+            // setQuery("");
             graph.removeNode('lucy');
             graph.removeNode('jane');
             graph.removeNode('shelly');
@@ -175,7 +182,7 @@
         }
 
         function ffoOver30() {
-            setQuery("");
+            // setQuery("");
             addPerson('noam');
             graph.removeNode('alon');
             graph.removeNode('boaz');
@@ -195,7 +202,7 @@
         }
 
         function getEntireGraph() {
-            setQuery("");
+            // setQuery("");
             graph.clear();
             addMyself();
             introduceFriends();
@@ -211,7 +218,7 @@
         }
         
         function introduceCountries() {
-            setQuery("");
+            // setQuery("");
             for(var i = 0; i < countries.length; i++) {
                 addCountry(countries[i]);
             }
@@ -258,7 +265,7 @@
         }
 
         function connectVisits() {
-            setQuery("");
+            // setQuery("");
             graph.addLink('roi', 'us'); //	business
             graph.addLink('roi', 'czech'); //	both
             graph.addLink('roi', 'japan'); //	pleasure
@@ -301,7 +308,7 @@
         }
 
         function placesIveBeenTo() {
-            setQuery("");
+            // setQuery("");
             
             // Remove friendship nodes.
             
@@ -336,7 +343,7 @@
         }
 
         function businessTrip() {
-            setQuery("");
+            // setQuery("");
             graph.clear();
             
             addMyself();
@@ -378,7 +385,7 @@
         }
 
         function vacations() {
-            setQuery("");
+            // setQuery("");
 
             graph.clear();
             /*
@@ -404,7 +411,7 @@
 
         function main() {
             graph = Viva.Graph.graph();
-            
+
             // Set custom nodes appearance 
             var graphics = Viva.Graph.View.svgGraphics();
             var nodeSize = 24*3;
@@ -422,27 +429,73 @@
             //     });
 
 
-            graphics.node(function(node) {
-              // This time it's a group of elements: http://www.w3.org/TR/SVG/struct.html#Groups
-              var ui = Viva.Graph.svg('g'),
-                  // Create SVG text element with user id as content
-                  svgText = Viva.Graph.svg('text').attr('font-size', '25px').attr('y', '-4px').text(node.id),
-                  img = Viva.Graph.svg('image')
-                     .attr('width', nodeSize)
-                     .attr('height', nodeSize)
-                     .link(node.data.url);
-              ui.append(svgText);
-              ui.append(img);
-              return ui;
-            }).placeNode(function(nodeUI, pos) {
-                // 'g' element doesn't have convenient (x,y) attributes, instead
-                // we have to deal with transforms: http://www.w3.org/TR/SVG/coords.html#SVGGlobalTransformAttribute
-                nodeUI.attr('transform',
-                            'translate(' +
-                                  (pos.x - nodeSize/2) + ',' + (pos.y - nodeSize/2) +
-                            ')');
-            });
+            // graphics.node(function(node) {
+            //   // This time it's a group of elements: http://www.w3.org/TR/SVG/struct.html#Groups
+            //   var ui = Viva.Graph.svg('g'),
+            //       // Create SVG text element with user id as content
+            //       svgText = Viva.Graph.svg('text').attr('font-size', '25px').attr('y', '-4px').text(node.id),
+            //       img = Viva.Graph.svg('image')
+            //          .attr('width', nodeSize)
+            //          .attr('height', nodeSize)
+            //          .link(node.data.url);
+            //   ui.append(svgText);
+            //   ui.append(img);
+            //   return ui;
+            // }).placeNode(function(nodeUI, pos) {
+            //     // 'g' element doesn't have convenient (x,y) attributes, instead
+            //     // we have to deal with transforms: http://www.w3.org/TR/SVG/coords.html#SVGGlobalTransformAttribute
+            //     nodeUI.attr('transform',
+            //                 'translate(' +
+            //                       (pos.x - nodeSize/2) + ',' + (pos.y - nodeSize/2) +
+            //                 ')');
+            // });
 
+            graphics.node(createNodeWithImage)
+                .placeNode(placeNodeWithTransform);
+
+            function createNodeWithImage(node) {
+                var radius = 40;
+                // First, we create a fill pattern and add it to SVG's defs:
+                var pattern = Viva.Graph.svg('pattern')
+                .attr('id', "imageFor_" + node.id)
+                .attr('patternUnits', "userSpaceOnUse")
+                .attr('width', 100)
+                .attr('height', 100)
+                var image = Viva.Graph.svg('image')
+                .attr('x', '0')
+                .attr('y', '0')
+                .attr('height', radius * 2)
+                .attr('width', radius * 2)
+                .link(node.data.url);
+                pattern.append(image);
+                defs.append(pattern);
+
+                // now create actual node and reference created fill pattern:
+                var ui = Viva.Graph.svg('g');
+                var circle = Viva.Graph.svg('circle')
+                .attr('cx', radius)
+                .attr('cy', radius)
+                .attr('fill', 'url(#imageFor_' + node.id + ')')
+                .attr('r', radius);
+
+                ui.append(circle);
+
+                // Create SVG text element with user id as content
+                var svgText = Viva.Graph.svg('text')
+                    .attr('font-size', '24px')
+                    .attr('y', '-4px')
+                    .attr('x', '40px')
+                    .attr('text-anchor', 'middle')
+                    .text(node.id);
+                ui.append(svgText);
+
+                return ui;
+            }
+
+            function placeNodeWithTransform(nodeUI, pos) {
+                // Shift image to let links go to the center:
+                nodeUI.attr('transform', 'translate(' + (pos.x - 40) + ',' + (pos.y - 40) + ')');
+            }
 
             // graphics.link(function(link){
             //     return Viva.Graph.svg('path')
@@ -469,8 +522,9 @@
                                .attr('refX', "10")
                                .attr('refY', "5")
                                .attr('markerUnits', "strokeWidth")
-                               .attr('markerWidth', "10")
-                               .attr('markerHeight', "5")
+                               .attr('markerWidth', "20")
+                               .attr('markerHeight', "10")
+                               .attr('fill', '#b52410')
                                .attr('orient', "auto");
                 },
             
@@ -483,7 +537,8 @@
             graphics.link(function(link){
                 // Notice the Triangle marker-end attribe:
                 return Viva.Graph.svg('path')
-                           .attr('stroke', 'gray')
+                           .attr('stroke', '#b52410')
+                           .attr('stroke-width', '2')
                            .attr('marker-end', 'url(#Triangle)');
             }).placeLink(function(linkUI, fromPos, toPos) {
                 // Here we should take care about
@@ -494,19 +549,19 @@
                     fromNodeSize = nodeSize;
                 var from = geom.intersectRect(
                         // rectangle:
-                                fromPos.x - fromNodeSize / 2, // left
-                                fromPos.y - fromNodeSize / 2, // top
-                                fromPos.x + fromNodeSize / 2, // right
-                                fromPos.y + fromNodeSize / 2, // bottom
+                                -10 + fromPos.x - fromNodeSize / 2, // left
+                                -10 + fromPos.y - fromNodeSize / 2, // top
+                                10 + fromPos.x + fromNodeSize / 2, // right
+                                10 + fromPos.y + fromNodeSize / 2, // bottom
                         // segment:
                                 fromPos.x, fromPos.y, toPos.x, toPos.y)
                            || fromPos; // if no intersection found - return center of the node
                 var to = geom.intersectRect(
                         // rectangle:
-                                toPos.x - toNodeSize / 2, // left
-                                toPos.y - toNodeSize / 2, // top
-                                toPos.x + toNodeSize / 2, // right
-                                toPos.y + toNodeSize / 2, // bottom
+                                -10 + toPos.x - toNodeSize / 2, // left
+                                -10 + toPos.y - toNodeSize / 2, // top
+                                10 + toPos.x + toNodeSize / 2, // right
+                                10 + toPos.y + toNodeSize / 2, // bottom
                         // segment:
                                 toPos.x, toPos.y, fromPos.x, fromPos.y)
                             || toPos; // if no intersection found - return center of the node
@@ -530,26 +585,59 @@
                     container: document.getElementById('graphDiv')
                 });
             renderer.run();
+            demoNextStep();
         }
     </script>
     
     <style type="text/css" media="screen">
-        html, body, svg { width: 100%; height: 100%;}
+        #graphDiv > svg {
+            width: 100%;
+            height: 100%;
+        }
     </style>
 
+    <!-- Material Design fonts -->
+    <!--<link rel="stylesheet" type="text/css" href="fonts.googleapis.com/css?family=Roboto:300,400,500,700">
+    <link rel="stylesheet" type="text/css" href="fonts.googleapis.com/icon?family=Material+Icons">-->
+
+    <!-- Bootstrap -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap Material Design -->
+    <!--<link rel="stylesheet" type="text/css" href="css/bootstrap-material-design.css">
+    <link rel="stylesheet" type="text/css" href="css/ripples.min.css">-->
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
     </head>
-    <body onload='main()'>        
-        <div id="query" style="height:10%; width:100%">
-            Query: <br>
-            <div style="height:100%; width:100%;">
-                <div>
-                    <button id="btnDemoStep" onclick="demoNextStep()">first node</button>
+    <body onload='main()'>
+        <div class="container-fluid">
+            <div id="title" class="row">
+                <div class="col-lg-10">
+                    <h1>
+                        <span id="steptitle"></span>
+                    </h1>
                 </div>
-                <div style="height:100%; width:100%;">
-                    <textarea multiline id="txtQuery" style="height:100%; width:100%; font-size: 18px;"> </textarea>
+                <div class="col-lg-2" style="padding-top: 15px;">
+                    <button id="btnDemoStep" onclick="demoNextStep()" style="width: 100%;" class="btn btn-primary btn-lg"></button>
                 </div>
             </div>
+            <div id="query" class="row">
+                <div class="col-lg-12">
+                    <textarea id="txtQuery" class="form-control" rows=3 style="font-size: 24px; background: transparent;"> </textarea>
+                </div>
+            </div>
+            <div id="graph" class="row full">
+                    <div id="graphDiv"></div>
+            </div>
         </div>
-        <div id="graphDiv" style="height:90%; width:100%"></div>
+        <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+        <!-- Include all compiled plugins (below), or include individual files as needed -->
+        <script src="js/bootstrap.min.js"></script>
     </body>
 </html>
